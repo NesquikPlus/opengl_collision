@@ -10,7 +10,7 @@ make
 
 ./main
 
-More spheres can be added, initial velocities can be changed from main.cpp.
+More spheres can be added, initial positions, velocities and masses of the spheres can be altered from main.cpp.
 
 Demo: 
 
