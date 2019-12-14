@@ -4,7 +4,7 @@ Simple collision of 3D spheres in OpenGL.
 
 # How to run?
 
-Install GLEW, GLFW, SOIL.
+Install GLEW, GLFW, GLM, SOIL.
 
 make
 
