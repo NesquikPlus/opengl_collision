@@ -12,7 +12,7 @@ using namespace std;
 #include <GL/glew.h> // Contains all the necessery OpenGL includes
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "soil/src/SOIL.h"
+#include <soil/src/SOIL.h>
 
 #include "Mesh.h"
 
