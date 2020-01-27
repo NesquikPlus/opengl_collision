@@ -35,9 +35,9 @@ private:
 	
 
 	GLboolean CheckCollision(GameObject& o1, GameObject& o2);
-	void DoCollisions();
+	void DoCollisions(int objNum1, int objNum2);
 	void Render();
-	void Update(GLfloat deltaTime);
+	void UpdatePositions(GLfloat deltaTime);
 
 
 };

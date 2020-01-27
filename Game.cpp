@@ -70,7 +70,7 @@ GLfloat lastFrame = 0.0f;
 	        lastFrame = currentFrame;
 
 	        MoveCamera(deltaTime);
-	        this->Update(deltaTime);
+	        UpdatePositions(deltaTime);
 
 	        glClearColor(0.2f, 0.2f, 0.5f, 1.0f);
 	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -87,30 +87,35 @@ GLfloat lastFrame = 0.0f;
 
 	}
 
-	void Game::Update(GLfloat deltaTime)
+	void Game::UpdatePositions(GLfloat deltaTime)
 	{
-
 		for(int i=0; i < gameObjectsList.size(); i++)
 		{
 			gameObjectsList[i].Move(deltaTime);
 		}
 
-		this->DoCollisions();
+		for(int i=0; i < gameObjectsList.size(); i++)
+		{
+			for(int j=i+1; j < gameObjectsList.size(); j++)
+			{
+				DoCollisions(i,j);
+			}
+		}
 	}
 
 
 
-	void Game::DoCollisions()
+	void Game::DoCollisions(int obj1Num, int obj2Num)
 	{
-		GameObject& obj1 = gameObjectsList[0];
-		GameObject& obj2 = gameObjectsList[1];
+		GameObject& obj1 = gameObjectsList[obj1Num];
+		GameObject& obj2 = gameObjectsList[obj2Num];
 
 		if(CheckCollision(obj1, obj2) == true)
-		{	
+		{
 			glm::vec3 normal (obj1.position - obj2.position);
 			
 			//(1,1,tmp) is a point on the plane of interception.
-			double tmp = -(normal.x - normal.x * ((obj1.position.x+obj2.position.x)/2) + 
+			float tmp = -(normal.x - normal.x * ((obj1.position.x+obj2.position.x)/2) + 
 							normal.y - normal.y * ((obj1.position.y+obj2.position.y)/2) - 
 							normal.z * ((obj1.position.z+obj2.position.z)/2))/normal.z;
 			
@@ -143,20 +148,29 @@ GLfloat lastFrame = 0.0f;
 			obj1.velocity = unitnormal * v1n_final + unittangent1 * v1t1_final + unittangent2 * v1t2_final;
 			obj2.velocity = unitnormal * v2n_final + unittangent1 * v2t1_final + unittangent2 * v2t2_final;
 
+			obj1.Move(deltaTime);
+			obj2.Move(deltaTime);
 		}
-
 	}
 
 
 
 	GLboolean Game::CheckCollision(GameObject& o1, GameObject& o2)
 	{
-		float tmp = sqrt(pow(abs(o1.position.x - o2.position.x),2) + pow(abs(o1.position.y - o2.position.y),2));
-		if(tmp <= 1.86)
-		{
+		float xDiff = (o1.position.x - o2.position.x) * (o1.position.x - o2.position.x);
+		float yDiff = (o1.position.y - o2.position.y) * (o1.position.y - o2.position.y); 
+		float zDiff = (o1.position.z - o2.position.z) * (o1.position.z - o2.position.z);
+
+
+		float sumOfDiff = xDiff + yDiff + zDiff;
+		float tmp = sqrt(sumOfDiff);
+
+
+		if(tmp <= 1.86){
 			return true;
 		}
 		
+		return false;
 	}
 
 
