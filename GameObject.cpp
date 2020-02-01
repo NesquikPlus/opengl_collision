@@ -14,12 +14,18 @@ GameObject::GameObject(string directory, glm::vec3 position, glm::vec3 velocity,
 	this->shader = new Shader("shaders/shader.vs", "shaders/shader.fs");
 	this->model = new Model(&directory[0]);
     this->mass = mass;
+
+
+    this->rotationLine = glm::vec3(1,1,1);//only collisions can alter rotationLine
+    this->rotationAngle = 0;
+    this->angularVel = 0;
 }
 
 
 void GameObject::Move(GLfloat deltaTime)
 {
 	this->position += this->velocity * deltaTime;
+    this->rotationAngle += this->angularVel * deltaTime;
 }
 
 
@@ -37,6 +43,8 @@ void GameObject::Render()
     // Draw the loaded model
     glm::mat4 mat;
     mat = glm::translate(mat, this->position); 
+    mat = glm::rotate(mat, rotationAngle, rotationLine);
+
     glUniformMatrix4fv(glGetUniformLocation(shader->Program, "model"), 1, GL_FALSE, glm::value_ptr(mat));
     
 

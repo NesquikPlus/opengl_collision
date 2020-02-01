@@ -3,6 +3,7 @@
 
 #include "GameObject.h"
 #include "Camera.h"
+#include <glm/gtx/perpendicular.hpp>
 
 #define GLEW_STATIC
 #include <GL/glew.h>

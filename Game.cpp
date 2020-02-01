@@ -1,8 +1,9 @@
 #include "Game.h"
 #include <cmath>
 #include <iostream>
+#include <glm/gtx/perpendicular.hpp>
 
-Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 12.0f));
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
 bool firstMouse = true;
@@ -13,8 +14,8 @@ GLfloat lastFrame = 0.0f;
 	{
 	    // Init GLFW
 	    glfwInit();
-	    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -140,11 +141,15 @@ GLfloat lastFrame = 0.0f;
 			float v2t2_final = glm::dot(obj2.velocity, unittangent2);
 
 
-			float v1n_final = (v1n * (obj1.mass - obj2.mass) + 2 * (obj2.mass) * v2n) / (obj1.mass+ obj2.mass);
-			float v2n_final = (v2n * (obj2.mass - obj1.mass) + 2 * (obj1.mass) * v1n) / (obj1.mass+ obj2.mass);
+			float v1n_final = (v1n * (obj1.mass - obj2.mass) + 2 * (obj2.mass) * v2n) / (obj1.mass + obj2.mass);
+			float v2n_final = (v2n * (obj2.mass - obj1.mass) + 2 * (obj1.mass) * v1n) / (obj1.mass + obj2.mass);
 
+			perp(unittangent1 * v1t1_final + unittangent2 * v1t2_final, obj1.rotationLine);
+			perp(unittangent2 * v1t2_final + unittangent2 * v1t2_final, obj2.rotationLine);
 
-			
+			obj1.angularVel = glm::length(unittangent1 * v1t1_final + unittangent2 * v1t2_final)/0.93f;
+			obj2.angularVel = glm::length(unittangent2 * v1t2_final + unittangent2 * v1t2_final)/0.93f;
+
 			obj1.velocity = unitnormal * v1n_final + unittangent1 * v1t1_final + unittangent2 * v1t2_final;
 			obj2.velocity = unitnormal * v2n_final + unittangent1 * v2t1_final + unittangent2 * v2t2_final;
 
