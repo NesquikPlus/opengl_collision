@@ -13,7 +13,7 @@
 
 
 // Function prototypes
-void MoveCamera(GLfloat deltaTime);
+void move_camera(GLfloat deltaTime);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -22,25 +22,26 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 class Game
 {
 public:
-	Game();
+	Game(GLuint screenWidth, GLuint screenHeight, glm::vec3 camPos);
 	~Game();
 	void AddGameObject(GameObject& gameobject);
+	void AddWall(GameObject& gameobject);
 	void Start();
 
-
 private:
-	std::vector<GameObject> gameObjectsList;
+	std::vector<GameObject> ballList;
+	std::vector<GameObject> wallList;
+
+
 	GLFWwindow* window;
 	const GLuint screenWidth;
 	const GLuint screenHeight;
 	
 
 	GLboolean CheckCollision(GameObject& o1, GameObject& o2);
-	void DoCollisions(int objNum1, int objNum2);
+	void PerformCollision(int objNum1, int objNum2);
 	void Render();
 	void UpdatePositions(GLfloat deltaTime);
-
-
 };
 
 

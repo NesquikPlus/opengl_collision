@@ -1,17 +1,20 @@
 # opengl_collision
 
-Simple collision of 3D spheres in OpenGL.
+Collision of 3D spheres in OpenGL.
 
-# How to run?
+# How to run on Linux?
 
-Install GLEW, GLFW, GLM, SOIL.
+Install glfw, glad libraries.
+
+Install soil and assimp libraries for loading obj models with textures.
 
 make
 
 ./main
 
-More spheres can be added, initial positions, velocities and masses of the spheres can be altered from main.cpp.
+More spheres can be added, initial positions, velocities, angular velocities, masses and model files of the spheres can be altered from main.cpp.
 
 Demo: 
 
-https://www.youtube.com/watch?v=nrm8d6h_SS0
+https://youtu.be/OtlB5nZVjQg
+

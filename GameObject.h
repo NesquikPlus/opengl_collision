@@ -1,6 +1,7 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
 
+#include <unistd.h>
 #include <vector>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -13,7 +14,8 @@
 class GameObject
 {
 public:
-	GameObject(string directory, glm::vec3 position, glm::vec3 velocity, float mass);
+	GameObject(string directory, glm::vec3 position, glm::vec3 velocity, float mass, 
+		glm::vec3 torque = glm::vec3(0,0,0), float rotationAngle = 0, float angularVel = 0);
 
 	void Move(GLfloat deltaTime);
 	void Render();
@@ -22,10 +24,9 @@ public:
 	glm::vec3 velocity;
 	glm::vec3 size;
 
-	glm::vec3 rotationLine;
-	float angularVel;
+	glm::vec3 torque;
 	float rotationAngle;
-
+	float angularVel;
 	float mass;
 
 private:

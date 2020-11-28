@@ -7,18 +7,18 @@
 const GLuint screenWidth = 1600;
 const GLuint screenHeight = 900;
 
-GameObject::GameObject(string directory, glm::vec3 position, glm::vec3 velocity, float mass)
+GameObject::GameObject(string directory, glm::vec3 position,
+ glm::vec3 velocity, float mass, 
+ glm::vec3 torque, float rotationAngle, float angularVel)
 {
 	this->position = position;
 	this->velocity = velocity;
 	this->shader = new Shader("shaders/shader.vs", "shaders/shader.fs");
 	this->model = new Model(&directory[0]);
     this->mass = mass;
-
-
-    this->rotationLine = glm::vec3(1,1,1);//only collisions can alter rotationLine
-    this->rotationAngle = 0;
-    this->angularVel = 0;
+    this->torque = torque;
+    this->rotationAngle = rotationAngle;
+    this->angularVel = angularVel;
 }
 
 
@@ -34,16 +34,19 @@ void GameObject::Render()
 {
 	shader->Use();
 
-
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth/(float)screenHeight, 0.1f, 100.0f);
     glm::mat4 view = camera->GetViewMatrix();
+
     glUniformMatrix4fv(glGetUniformLocation(shader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUniformMatrix4fv(glGetUniformLocation(shader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+
+
 
     // Draw the loaded model
     glm::mat4 mat;
     mat = glm::translate(mat, this->position); 
-    mat = glm::rotate(mat, rotationAngle, rotationLine);
+    if(glm::length(torque) != 0)
+        mat = glm::rotate(mat, rotationAngle, torque);
 
     glUniformMatrix4fv(glGetUniformLocation(shader->Program, "model"), 1, GL_FALSE, glm::value_ptr(mat));
     

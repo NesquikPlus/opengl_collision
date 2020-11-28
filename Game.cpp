@@ -2,232 +2,264 @@
 #include <cmath>
 #include <iostream>
 #include <glm/gtx/perpendicular.hpp>
+#include <glm/gtx/projection.hpp>
 
-Camera camera(glm::vec3(0.0f, 0.0f, 12.0f));
+bool paused = false;
+Camera* camera;
 bool keys[1024];
-GLfloat lastX = 400, lastY = 300;
+GLfloat lastX, lastY;
 bool firstMouse = true;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-	Game::Game():screenWidth(1600),screenHeight(900)
+Game::Game(GLuint screenWidth, GLuint screenHeight, glm::vec3 camPos):screenWidth(screenWidth),screenHeight(screenHeight)
+{
+    // Init GLFW
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+
+   	window = glfwCreateWindow(screenWidth, screenHeight, "Collision3D", nullptr, nullptr);
+    glfwMakeContextCurrent(window);
+
+    // Options
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    // Initialize GLEW to setup the OpenGL Function pointers
+    glewExperimental = GL_TRUE;
+    glewInit();
+
+    // Define the viewport dimensions
+    glViewport(0, 0, screenWidth, screenHeight);
+
+    // Setup some OpenGL options
+    glEnable(GL_DEPTH_TEST);
+
+    camera = new Camera(camPos);
+    lastX = screenWidth/2;
+    lastY = screenHeight/2;
+
+	glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+}
+
+Game::~Game()
+{
+	glfwTerminate();
+}
+
+
+void Game::Start()
+{
+	this->Render();
+}
+
+
+void Game::AddGameObject(GameObject& gameobject)
+{	
+	gameobject.camera = camera;
+	ballList.push_back(gameobject);
+}
+
+void Game::AddWall(GameObject& gameobject)
+{
+	gameobject.camera = camera;
+	wallList.push_back(gameobject);
+}
+
+
+void Game::Render()
+{
+	while (!glfwWindowShouldClose(window))
 	{
-	    // Init GLFW
-	    glfwInit();
-	    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-	    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+        glfwPollEvents();
 
-	   	this->window = glfwCreateWindow(screenWidth, screenHeight, "Collisions", nullptr, nullptr);
-	    glfwMakeContextCurrent(window);
+        GLfloat currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
-	    // Options
-    	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        move_camera(deltaTime);
+        UpdatePositions(deltaTime);
 
+        glClearColor(0.2f, 0.2f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+       
 
-	    // Initialize GLEW to setup the OpenGL Function pointers
-	    glewExperimental = GL_TRUE;
-	    glewInit();
+		for(int i=0; i < ballList.size(); i++){
+			ballList[i].Render();
+		}
 
-	    // Define the viewport dimensions
-	    glViewport(0, 0, screenWidth, screenHeight);
+   		for(int i=0; i < wallList.size(); i++){
+			wallList[i].Render();
+		}
 
-	    // Setup some OpenGL options
-	    glEnable(GL_DEPTH_TEST);
-
-
-		glfwSetKeyCallback(window, key_callback);
-	    glfwSetCursorPosCallback(window, mouse_callback);
-	    glfwSetScrollCallback(window, scroll_callback);
+        glfwSwapBuffers(this->window);
 	}
 
-	Game::~Game()
+}
+
+void Game::UpdatePositions(GLfloat deltaTime)
+{
+	if(paused)
+		return;
+
+	for(int i=0; i < ballList.size(); i++)
 	{
-		glfwTerminate();
+
+		if(ballList[i].position.x > 3.5f && ballList[i].velocity.x > 0)
+			ballList[i].velocity.x *= -1;
+		else if(ballList[i].position.x < -3.5f && ballList[i].velocity.x < 0)
+			ballList[i].velocity.x *= -1;
+
+		if(ballList[i].position.y > 3.5f && ballList[i].velocity.y > 0)
+			ballList[i].velocity.y *= -1;
+		else if(ballList[i].position.y < -3.5f && ballList[i].velocity.y < 0)
+			ballList[i].velocity.y *= -1;
+
+		if(ballList[i].position.z > 3.5f && ballList[i].velocity.z > 0)
+			ballList[i].velocity.z *= -1;
+		else if(ballList[i].position.z < -3.5f && ballList[i].velocity.z < 0)
+			ballList[i].velocity.z *= -1;
+
+
+		ballList[i].Move(deltaTime);
 	}
 
-
-	void Game::Start()
+	for(int i=0; i < ballList.size(); i++)
 	{
-		this->Render();
-	}
-
-
-	void Game::AddGameObject(GameObject& gameobject)
-	{	
-		gameobject.camera = &camera;
-		gameObjectsList.push_back(gameobject);
-	}
-
-	void Game::Render()
-	{
-    	while (!glfwWindowShouldClose(window))
-    	{
-	        glfwPollEvents();
-
-	        GLfloat currentFrame = glfwGetTime();
-	        deltaTime = currentFrame - lastFrame;
-	        lastFrame = currentFrame;
-
-	        MoveCamera(deltaTime);
-	        UpdatePositions(deltaTime);
-
-	        glClearColor(0.2f, 0.2f, 0.5f, 1.0f);
-	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	       
-
-			for(int i=0; i < gameObjectsList.size(); i++)
-			{
-				gameObjectsList[i].Render();
-			}
-
-	        // Swap the screen buffers
-	        glfwSwapBuffers(this->window);
-    	}
-
-	}
-
-	void Game::UpdatePositions(GLfloat deltaTime)
-	{
-		for(int i=0; i < gameObjectsList.size(); i++)
+		for(int j=i+1; j < ballList.size(); j++)
 		{
-			gameObjectsList[i].Move(deltaTime);
-		}
-
-		for(int i=0; i < gameObjectsList.size(); i++)
-		{
-			for(int j=i+1; j < gameObjectsList.size(); j++)
-			{
-				DoCollisions(i,j);
-			}
+			PerformCollision(i,j);
 		}
 	}
+}
 
 
+void Game::PerformCollision(int obj1Num, int obj2Num)
+{
+	GameObject& obj1 = ballList[obj1Num];
+	GameObject& obj2 = ballList[obj2Num];
 
-	void Game::DoCollisions(int obj1Num, int obj2Num)
+	if(CheckCollision(obj1, obj2) == true)
 	{
-		GameObject& obj1 = gameObjectsList[obj1Num];
-		GameObject& obj2 = gameObjectsList[obj2Num];
+		glm::vec3 centersVector = (obj1.position - obj2.position);
+		centersVector = glm::normalize(centersVector);
 
-		if(CheckCollision(obj1, obj2) == true)
-		{
-			glm::vec3 normal (obj1.position - obj2.position);
-			
-			//(1,1,tmp) is a point on the plane of interception.
-			float tmp = -(normal.x - normal.x * ((obj1.position.x+obj2.position.x)/2) + 
-							normal.y - normal.y * ((obj1.position.y+obj2.position.y)/2) - 
-							normal.z * ((obj1.position.z+obj2.position.z)/2))/normal.z;
-			
-			glm::vec3 tangent1(((obj1.position.x+obj2.position.x)/2) - 1, ((obj1.position.y+obj2.position.y)/2) -1, ((obj1.position.z+obj2.position.z)/2) - tmp);
-			glm::vec3 tangent2 = glm::cross(tangent1, normal);
+		glm::vec3 v1proj = glm::proj(obj1.velocity, centersVector);
+		glm::vec3 v2proj = glm::proj(obj2.velocity, centersVector);
+
+		float v1n =  -1.0f * glm::length(v1proj);
+		float v2n =  glm::length(v2proj);
+
+		float v1n_final = (v1n * (obj1.mass - obj2.mass) + 2 * (obj2.mass) * v2n) / (obj1.mass + obj2.mass);
+		float v2n_final = (v2n * (obj2.mass - obj1.mass) + 2 * (obj1.mass) * v1n) / (obj1.mass + obj2.mass);
+
+		glm::vec3 Ff1_dir = glm::normalize(-(obj1.velocity - v1proj));
+		glm::vec3 Ff2_dir = glm::normalize(-(obj2.velocity - v2proj));
+
+		obj1.velocity = (obj1.velocity - v1proj) + (v1n_final * glm::normalize(centersVector));
+		obj2.velocity = (obj2.velocity - v2proj) + (v2n_final * glm::normalize(centersVector));
+
+		//Ff = kfc * (m * (deltav)/(deltat))
+		float kfc_div_deltat = 0.1f;
+		float Ff_norm = obj1.mass * (v1n_final - v1n) * kfc_div_deltat * 2;//equals to obj2.mass * (v2n_final - v2n) * kfc_div_deltat
+
+		glm::vec3 Ff1 = Ff1_dir * Ff_norm;
+		glm::vec3 Ff2 = Ff2_dir * Ff_norm;
+
+		glm::vec3 torque1 = glm::cross((-centersVector), Ff1);
+		glm::vec3 torque2 = glm::cross((centersVector), Ff2);
+
+		obj1.torque += torque1;
+		obj2.torque += torque2;
+
+		float alpha1 = glm::length(obj1.torque) / (0.4 * obj1.mass * (0.93)*(0.93));//I = 2/5 * m * r^2
+		float alpha2 = glm::length(obj2.torque) / (0.4 * obj2.mass * (0.93)*(0.93));//I = 2/5 * m * r^2
+
+		obj1.angularVel = alpha1;
+		obj2.angularVel = alpha2;
+
+		obj1.Move(0.000001);
+		obj2.Move(0.000001);
+	}
+}
+
+GLboolean Game::CheckCollision(GameObject& o1, GameObject& o2)
+{
+	float xDiff = (o1.position.x - o2.position.x) * (o1.position.x - o2.position.x);
+	float yDiff = (o1.position.y - o2.position.y) * (o1.position.y - o2.position.y); 
+	float zDiff = (o1.position.z - o2.position.z) * (o1.position.z - o2.position.z);
+
+	float sumOfDiff = xDiff + yDiff + zDiff;
+
+	if(sqrt(sumOfDiff) <= 1.86){
+		return true;
+	}
+	
+	return false;
+}
 
 
-			glm::vec3 unitnormal = glm::normalize(normal);
-			glm::vec3 unittangent1 = glm::normalize(tangent1);
-			glm::vec3 unittangent2 = glm::normalize(tangent2);
-
-			float v1n = glm::dot(obj1.velocity, unitnormal);
-			float v2n = glm::dot(obj2.velocity, unitnormal);
-
-
-
-			float v1t1_final = glm::dot(obj1.velocity, unittangent1);
-			float v1t2_final = glm::dot(obj1.velocity, unittangent2);
-
-
-			float v2t1_final = glm::dot(obj2.velocity, unittangent1);
-			float v2t2_final = glm::dot(obj2.velocity, unittangent2);
+// Moves the camera positions based on user input
+void move_camera(GLfloat deltaTime)
+{
+    // Camera controls
+    if(keys[GLFW_KEY_W])
+        camera->ProcessKeyboard(FORWARD, deltaTime);
+    if(keys[GLFW_KEY_S])
+        camera->ProcessKeyboard(BACKWARD, deltaTime);
+    if(keys[GLFW_KEY_A])
+        camera->ProcessKeyboard(LEFT, deltaTime);
+    if(keys[GLFW_KEY_D])
+        camera->ProcessKeyboard(RIGHT, deltaTime);
+}
 
 
-			float v1n_final = (v1n * (obj1.mass - obj2.mass) + 2 * (obj2.mass) * v2n) / (obj1.mass + obj2.mass);
-			float v2n_final = (v2n * (obj2.mass - obj1.mass) + 2 * (obj1.mass) * v1n) / (obj1.mass + obj2.mass);
 
-			perp(unittangent1 * v1t1_final + unittangent2 * v1t2_final, obj1.rotationLine);
-			perp(unittangent2 * v1t2_final + unittangent2 * v1t2_final, obj2.rotationLine);
-
-			obj1.angularVel = glm::length(unittangent1 * v1t1_final + unittangent2 * v1t2_final)/0.93f;
-			obj2.angularVel = glm::length(unittangent2 * v1t2_final + unittangent2 * v1t2_final)/0.93f;
-
-			obj1.velocity = unitnormal * v1n_final + unittangent1 * v1t1_final + unittangent2 * v1t2_final;
-			obj2.velocity = unitnormal * v2n_final + unittangent1 * v2t1_final + unittangent2 * v2t2_final;
-
-			obj1.Move(deltaTime);
-			obj2.Move(deltaTime);
-		}
+// Is called whenever a key is pressed/released via GLFW
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+	if(key == GLFW_KEY_SPACE && action == GLFW_PRESS){
+		if(paused == true)
+			paused = false;
+		else
+			paused = true;
 	}
 
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
 
-
-	GLboolean Game::CheckCollision(GameObject& o1, GameObject& o2)
-	{
-		float xDiff = (o1.position.x - o2.position.x) * (o1.position.x - o2.position.x);
-		float yDiff = (o1.position.y - o2.position.y) * (o1.position.y - o2.position.y); 
-		float zDiff = (o1.position.z - o2.position.z) * (o1.position.z - o2.position.z);
-
-
-		float sumOfDiff = xDiff + yDiff + zDiff;
-		float tmp = sqrt(sumOfDiff);
-
-
-		if(tmp <= 1.86){
-			return true;
-		}
-		
-		return false;
-	}
-
-
-	// Moves the camera positions based on user input
-	void MoveCamera(GLfloat deltaTime)
-	{
-	    // Camera controls
-	    if(keys[GLFW_KEY_W])
-	        camera.ProcessKeyboard(FORWARD, deltaTime);
-	    if(keys[GLFW_KEY_S])
-	        camera.ProcessKeyboard(BACKWARD, deltaTime);
-	    if(keys[GLFW_KEY_A])
-	        camera.ProcessKeyboard(LEFT, deltaTime);
-	    if(keys[GLFW_KEY_D])
-	        camera.ProcessKeyboard(RIGHT, deltaTime);
-	}
+    if(action == GLFW_PRESS)
+        keys[key] = true;
+    else if(action == GLFW_RELEASE)
+        keys[key] = false;  
+}
 
 
 
-	// Is called whenever a key is pressed/released via GLFW
-	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
-	{
-	    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-	        glfwSetWindowShouldClose(window, GL_TRUE);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if(firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
 
-	    if(action == GLFW_PRESS)
-	        keys[key] = true;
-	    else if(action == GLFW_RELEASE)
-	        keys[key] = false;  
-	}
+    GLfloat xoffset = xpos - lastX;
+    GLfloat yoffset = lastY - ypos; 
+    
+    lastX = xpos;
+    lastY = ypos;
 
+   	camera->ProcessMouseMovement(xoffset, yoffset);
+}   
 
-
-	void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-	{
-	    if(firstMouse)
-	    {
-	        lastX = xpos;
-	        lastY = ypos;
-	        firstMouse = false;
-	    }
-
-	    GLfloat xoffset = xpos - lastX;
-	    GLfloat yoffset = lastY - ypos; 
-	    
-	    lastX = xpos;
-	    lastY = ypos;
-
-	   	camera.ProcessMouseMovement(xoffset, yoffset);
-	}   
-
-	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-	{
-	    camera.ProcessMouseScroll(yoffset);
-	}
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera->ProcessMouseScroll(yoffset);
+}
