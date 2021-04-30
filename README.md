@@ -16,33 +16,26 @@ Put glad.c and stb_image.h in project directory.
 
 Your include directory(usr/local/include by default) should contain the following folders with header files inside them:
 
-assimp  glad  GLFW  glm  KHR  stb_image
+├── assimp  
+├── glad  
+├── GLFW  
+├── glm  
+├── KHR  
+├── stb_image
 
-Your library directory(/usr/local/lib by default) should contain the following files:
+Your library directory (/usr/local/lib by default) should contain the following files:
 
-├── cmake
-│   ├── assimp-5.0
-│   │   ├── assimp-config.cmake
-│   │   ├── assimp-config-version.cmake
-│   │   ├── assimpTargets.cmake
-│   │   └── assimpTargets-release.cmake
-│   ├── glfw3
-│   │   ├── glfw3Config.cmake
-│   │   ├── glfw3ConfigVersion.cmake
-│   │   ├── glfw3Targets.cmake
-│   │   └── glfw3Targets-noconfig.cmake
-│   └── glm
-│       ├── glmConfig.cmake
-│       └── glmConfigVersion.cmake
-├── libassimp.so -> libassimp.so.5
-├── libassimp.so.5 -> libassimp.so.5.0.0
+├── libassimp.so
+
+├── libassimp.so.5
+
 ├── libassimp.so.5.0.0
+
 ├── libglfw3.a
+
 ├── libIrrXML.a
+
 ├── libzlibstatic.a
-├── pkgconfig
-│   ├── assimp.pc
-│   └── glfw3.pc
 
 Change the makefile if you plan to use a different include or library path.
 
@@ -53,4 +46,3 @@ make
 Demo: 
 
 https://youtu.be/OtlB5nZVjQg
-
