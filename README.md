@@ -12,7 +12,7 @@ Install glfw, glm, assimp libraries with cmake.
 
 Download include files for glad and stb_image.
 
-Put glad.c and stb_image.h in project directory.
+Put glad.c in the project directory.
 
 Your include directory(usr/local/include by default) should contain the following folders with header files inside them:
 
