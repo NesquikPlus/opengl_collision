@@ -44,7 +44,9 @@ make
 
 # Build with MinGW for Windows:
 
-Build and install glfw, glm, assimp libraries with cmake. (Generate makefiles for MSYS2 as generating for MinGW was problematic in my case.)
+Build and install glfw, glm, assimp libraries with cmake. 
+
+(For assimp: Generate makefiles for MSYS2 as generating for MinGW was problematic in my case. You can use the resulting libraries with MinGW as well.)
 
 Download include files for glad and stb_image and copy to your include directory.
 
@@ -67,6 +69,10 @@ Your library directory (C:/opengl/lib by default) should contain the following f
     - libassimp.a
     - libassimp.dll.a
     - libIrrXML.a
+
+Your project directory should contain the following dynamic libraries:
+  - assimp-vc142-mtd.dll
+  - glfw3.dll
 
 Change the makefile if you plan to use a different include or library path.
 
